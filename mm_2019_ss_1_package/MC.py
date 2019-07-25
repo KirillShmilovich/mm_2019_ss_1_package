@@ -1,72 +1,7 @@
 import numpy as np
+from .geom import Geom
+from .energy import Energy
 
-class Geom:
-    def __init__(self, method, num_particles, box_length, file_name = None):
-        self.method = method
-        self.file_name = file_name
-        self.num_particles = num_particles
-        self.box_length = box_length
-        self.volume = np.power(self.box_length,3)
-        self.generate_initial_state()
-
-    def generate_initial_state(self):
-        if self.method is 'random':
-            self.coordinates = (0.5 - np.random.rand(self.num_particles, 3)) * self.box_length
-        elif self.method is 'file':
-            self.coordinates = np.loadtxt(self.file_name, skiprows=2, usecols=(1,2,3))
-    
-    def minimum_image_distance(self,r_i, r_j):
-        rij = r_i - r_j
-        rij = rij - self.box_length * np.round(rij / self.box_length)
-        rij2 = np.dot(rij, rij)
-        return rij2
-
-class Energy:
-
-    def __init__(self, Geom, cutoff, num_particles):
-       self.Geom = Geom 
-       self.cutoff  = cutoff
-       self.cutoff2 = self.cutoff**2
-       self.num_particles = num_particles
-
-    def lennard_jones_potential(self,rij2):
-        sig_by_r6 = np.power(1 / rij2, 3)
-        sig_by_r12 = np.power(sig_by_r6, 2)
-        return 4.0 * (sig_by_r12 - sig_by_r6)
-
-    def calculate_total_pair_energy(self):
-        e_total = 0.0
-        particle_count = len(self.Geom.coordinates)
-        for i_particle in range(particle_count):
-            for j_particle in range(i_particle):
-                r_i = self.Geom.coordinates[i_particle]
-                r_j = self.Geom.coordinates[j_particle]
-                rij2 = self.Geom.minimum_image_distance(r_i, r_j)
-                if rij2 < self.cutoff2:
-                    e_pair = self.lennard_jones_potential(rij2)
-                    e_total += e_pair
-        return e_total
-
-    def get_particle_energy(self, i_particle, coordinates):
-        e_total = 0.0
-        i_position = coordinates[i_particle]
-        particle_count = len(coordinates)
-        for j_particle in range(particle_count):
-            if i_particle != j_particle:
-                j_position = coordinates[j_particle]
-                rij2 = self.Geom.minimum_image_distance(i_position, j_position)
-                if rij2 < self.cutoff2:
-                    e_pair = self.lennard_jones_potential(rij2)
-                    e_total += e_pair
-        return e_total
-    
-    def calculate_tail_correction(self):
-        sig_by_cutoff3 = np.power(1.0 / self.cutoff, 3)
-        sig_by_cutoff9 = np.power(sig_by_cutoff3, 3)
-        e_correction = sig_by_cutoff9 - 3.0 * sig_by_cutoff3
-        e_correction *= 8.0 / 9.0 * np.pi * self.num_particles / self.Geom.volume * self.num_particles
-        return e_correction
-    
 class MC:
 
     def __init__(self, method, num_particles, reduced_den, reduced_temp, max_displacement, cutoff, file_name = None, tune_displacement = True):
