@@ -19,7 +19,7 @@ class MC:
         self.tail_correction = self.Energy.calculate_tail_correction()
         self.total_pair_energy = self.Energy.calculate_total_pair_energy()
 
-    def accept_or_reject(self,delta_e):
+    def _accept_or_reject(self,delta_e):
         if delta_e < 0.0:
             accept = True
         else:
@@ -31,7 +31,7 @@ class MC:
                 accept = False
         return accept
 
-    def adjust_displacement(self):
+    def _adjust_displacement(self):
         acc_rate = float(self.n_accept) / float(self.n_trials)
         if (acc_rate < 0.38):
             self.max_displacement *= 0.8
@@ -57,7 +57,7 @@ class MC:
 
             proposed_energy = self.Energy.get_particle_energy(i_particle, proposed_coordinates)
             delta_e = proposed_energy - current_energy
-            accept = self.accept_or_reject(delta_e)
+            accept = self._accept_or_reject(delta_e)
 
             if accept:
                 self.total_pair_energy += delta_e
@@ -70,7 +70,7 @@ class MC:
             if np.mod(i_step + 1, self.freq) == 0:
                 print(i_step + 1, self.energy_array[i_step])
                 if self.tune_displacement:
-                    self.adjust_displacement()
+                    self._adjust_displacement()
 
 if __name__ == "__main__":
     sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
