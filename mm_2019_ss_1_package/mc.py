@@ -72,5 +72,6 @@ class MC:
                 if self.tune_displacement:
                     self.adjust_displacement()
 
-sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
-sim.run(n_steps = 50000, freq = 1000)
+if __name__ == "__main__":
+    sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
+    sim.run(n_steps = 50000, freq = 1000)
