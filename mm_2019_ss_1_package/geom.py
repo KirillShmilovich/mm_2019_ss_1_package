@@ -36,7 +36,7 @@ class Geom:
         else:
             raise TypeError('Method type not recognized.')
 
-    def minimum_image_distance(self,r_i, r_j):
+    def minimum_image_distance(self,r_i, coords):
         """Calculate minimum image distance between two particles, i and j.
 
         Parameters
@@ -45,15 +45,15 @@ class Geom:
             Length of box to generate.
         r_i : array
             Coordinates of particle i.
-        r_j : array
-            Coordinates of particle j.
+        coords : array
+            Coordintes of particle j or array of positions
 
         Returns
         -------
-        rij2 : square of the distance between particles i and j.
+        rij2 : square of the distance between particles i and j, or particle i and all the coords.
 
         """
-        rij = r_i - r_j
+        rij = r_i - coords
         rij = rij - self.box_length * np.round(rij / self.box_length)
-        rij2 = np.dot(rij, rij)
+        rij2 = np.sum(rij**2,axis=1)
         return rij2
