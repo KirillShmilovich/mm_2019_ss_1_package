@@ -57,3 +57,6 @@ class Geom:
         rij = rij - self.box_length * np.round(rij / self.box_length)
         rij2 = np.sum(rij**2,axis=1)
         return rij2
+
+    def wrap(self,v):
+        return v - self.box_length*np.rint(v/self.box_length)
