@@ -23,10 +23,6 @@ class Geom:
         box_length : integer or float
             Length of box to generate.
 
-        Returns
-        -------
-        coordinates : array
-            Array of particle coordinates generated for an initial state
         """
 
         if self.method is 'random':
@@ -50,7 +46,8 @@ class Geom:
 
         Returns
         -------
-        rij2 : square of the distance between particles i and j.
+        rij2 : integer or float
+            square of the distance between particles i and j.
 
         """
         rij = r_i - r_j
