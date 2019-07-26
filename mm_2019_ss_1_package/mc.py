@@ -4,7 +4,7 @@ from .energy import Energy
 
 class MC:
 
-    def __init__(self, method, reduced_den, reduced_temp, max_displacement, cutoff, num_particles = None, file_name = None, tune_displacement = True):
+    def __init__(self, method, reduced_temp, max_displacement, cutoff, num_particles = None, file_name = None, tune_displacement = True, reduced_den = None):
         self.beta = 1./float(reduced_temp)
         self.n_trials = 0
         self.n_accept = 0
@@ -13,9 +13,9 @@ class MC:
         self.tune_displacement = tune_displacement
 
         if method == 'random':
+            self.Geom = Geom(method, num_particles = num_particles, reduced_den = reduced_den)
             self.num_particles = num_particles
             self.box_length = np.cbrt(num_particles / reduced_den)
-            self.Geom = Geom(method, num_particles = self.num_particles, box_length = self.box_length)
         elif method == 'file':
             self.Geom = Geom(method, file_name = file_name)
             self.num_particles = self.Geom.num_particles

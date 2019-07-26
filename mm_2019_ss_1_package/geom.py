@@ -31,15 +31,15 @@ class Geom:
         """
 
         if method is 'random':
-            if ('num_particles' not in kwargs or 'box_length' not in kwargs):
-                raise ValueError(' "num_particles" and "box_length" arguments must be set for method=random!')
+            if (kwargs['num_particles'] == None or kwargs['reduced_den'] == None):
+                raise ValueError(' "num_particles" and "reduced_den" arguments must be set for method=random!')
             self.num_particles = kwargs['num_particles']
-            self.box_length = kwargs['box_length']
+            self.box_length = np.cbrt(self.num_particles / kwargs['reduced_den'])
             self.volume = self.box_length**3
             self.coordinates = (0.5 - np.random.rand(self.num_particles, 3)) * self.box_length
 
         elif method is 'file':
-            if ('file_name' not in kwargs):
+            if (kwargs['file_name']==None):
                 raise ValueError('"filename" argument must be set for method = file!')
             file_name = kwargs['file_name']
             with open(file_name) as f:
@@ -47,7 +47,7 @@ class Geom:
                 self.box_length = np.fromstring(lines[0], dtype=float, sep=',')[0]
                 self.volume = self.box_length**3
                 self.num_particles = np.fromstring(lines[1], dtype=float, sep=',')[0]
-            self.coordinates = np.loadtxt(self.file_name, skiprows=2, usecols=(1,2,3))
+            self.coordinates = np.loadtxt(file_name, skiprows=2, usecols=(1,2,3))
             if (self.num_particles != self.coordinates.shape[0]):
                 raise ValueError('Inconsistent value of number of particles in file!')
 
@@ -88,6 +88,6 @@ class Geom:
         None
 
         """
-        v_wrapped = self.coords - self.box_length*np.round(self.coords/self.box_length)
+        self.coordinates = self.coordinates - self.box_length*np.round(self.coordinates/self.box_length)
 
 
