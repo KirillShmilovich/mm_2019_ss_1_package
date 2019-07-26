@@ -59,4 +59,4 @@ class Geom:
         return rij2
 
     def wrap(self,v):
-        return v - self.box_length*np.rint(v/self.box_length)
+        return v - self.box_length*np.round(v/self.box_length)
