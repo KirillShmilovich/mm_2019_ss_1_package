@@ -1,6 +1,6 @@
 import numpy as np
-from .geom import Geom
-from .energy import Energy
+from geom import Geom
+from energy import Energy
 
 class MC:
 
@@ -40,9 +40,8 @@ class MC:
         self.n_trials = 0
         self.n_accept = 0
     
-    def run(self, n_steps, freq):
+    def run(self, n_steps):
         self.n_steps = n_steps
-        self.freq = freq
         self.energy_array = np.zeros(n_steps)
 
         for i_step in range(self.n_steps):
@@ -70,8 +69,19 @@ class MC:
             if np.mod(i_step + 1, self.freq) == 0:
                 print(i_step + 1, self.energy_array[i_step])
                 if self.tune_displacement:
-                    self.adjust_displacement()
+                   self.adjust_displacement()
+
+
+    
+    def reporters(log_file, freq, temperature, volume, density):
+        self.freq = freq
+        self.density = density
+        self.pressure = pressure 
+        self.Geom.volume - volume
+        self.Energy.temperature = temperature
+        
 
 if __name__ == "__main__":
     sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
-    sim.run(n_steps = 50000, freq = 1000)
+    sim.run(n_steps = 50000)
+    sim.reporters.append('mc.log', freq = 1000,  )
