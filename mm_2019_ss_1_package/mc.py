@@ -80,7 +80,7 @@ class MC:
                 print(i_step + 1, self.energy_array[i_step])
                 if self.tune_displacement:
                     self._adjust_displacement()
-                self.Geom.warp()
+                self.Geom.wrap()
 
 if __name__ == "__main__":
     sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
