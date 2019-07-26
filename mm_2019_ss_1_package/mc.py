@@ -4,18 +4,27 @@ from .energy import Energy
 
 class MC:
 
-    def __init__(self, method, num_particles, reduced_den, reduced_temp, max_displacement, cutoff, file_name = None, tune_displacement = True):
+    def __init__(self, method, reduced_temp, max_displacement, cutoff, num_particles = None, file_name = None, tune_displacement = True, reduced_den = None):
         self.beta = 1./float(reduced_temp)
         self.n_trials = 0
         self.n_accept = 0
         self.max_displacement = max_displacement
-        self.num_particles = num_particles
-        self.box_length = np.cbrt(num_particles / reduced_den)
         self.cutoff = cutoff
         self.tune_displacement = tune_displacement
 
-        self.Geom = Geom(method, self.num_particles, self.box_length, file_name=file_name)
+        if method == 'random':
+            self.Geom = Geom(method, num_particles = num_particles, reduced_den = reduced_den)
+            self.num_particles = num_particles
+            self.box_length = np.cbrt(num_particles / reduced_den)
+        elif method == 'file':
+            self.Geom = Geom(method, file_name = file_name)
+            self.num_particles = self.Geom.num_particles
+            self.box_length = self.Geom.box_length
+        else:
+            raise ValueError("Method must be either 'file' or 'random'")
+
         self.Energy = Energy(self.Geom, self.cutoff, self.num_particles)
+        
         self.tail_correction = self.Energy.calculate_tail_correction()
         self.total_pair_energy = self.Energy.calculate_total_pair_energy()
 
@@ -71,6 +80,7 @@ class MC:
                 print(i_step + 1, self.energy_array[i_step])
                 if self.tune_displacement:
                     self._adjust_displacement()
+                self.Geom.warp()
 
 if __name__ == "__main__":
     sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
