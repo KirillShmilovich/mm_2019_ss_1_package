@@ -1,6 +1,6 @@
 import numpy as np
-from geom import Geom
-from energy import Energy
+from .geom import Geom
+from .energy import Energy
 
 class MC:
 
@@ -19,7 +19,7 @@ class MC:
         self.tail_correction = self.Energy.calculate_tail_correction()
         self.total_pair_energy = self.Energy.calculate_total_pair_energy()
 
-    def accept_or_reject(self,delta_e):
+    def _accept_or_reject(self,delta_e):
         if delta_e < 0.0:
             accept = True
         else:
@@ -31,7 +31,7 @@ class MC:
                 accept = False
         return accept
 
-    def adjust_displacement(self):
+    def _adjust_displacement(self):
         acc_rate = float(self.n_accept) / float(self.n_trials)
         if (acc_rate < 0.38):
             self.max_displacement *= 0.8
@@ -40,8 +40,9 @@ class MC:
         self.n_trials = 0
         self.n_accept = 0
     
-    def run(self, n_steps):
+    def run(self, n_steps, freq):
         self.n_steps = n_steps
+        self.freq = freq
         self.energy_array = np.zeros(n_steps)
 
         for i_step in range(self.n_steps):
@@ -56,7 +57,7 @@ class MC:
 
             proposed_energy = self.Energy.get_particle_energy(i_particle, proposed_coordinates)
             delta_e = proposed_energy - current_energy
-            accept = self.accept_or_reject(delta_e)
+            accept = self._accept_or_reject(delta_e)
 
             if accept:
                 self.total_pair_energy += delta_e
@@ -72,16 +73,7 @@ class MC:
                    self.adjust_displacement()
 
 
-    
-    def reporters(log_file, freq, temperature, volume, density):
-        self.freq = freq
-        self.density = density
-        self.pressure = pressure 
-        self.Geom.volume - volume
-        self.Energy.temperature = temperature
-        
 
 if __name__ == "__main__":
     sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
-    sim.run(n_steps = 50000)
-    sim.reporters.append('mc.log', freq = 1000,  )
+    sim.run(n_steps = 50000, freq= 1000)

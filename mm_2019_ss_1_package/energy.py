@@ -27,16 +27,11 @@ class Energy:
         return e_total
 
     def get_particle_energy(self, i_particle, coordinates):
-        e_total = 0.0
-        i_position = coordinates[i_particle]
-        particle_count = len(coordinates)
-        for j_particle in range(particle_count):
-            if i_particle != j_particle:
-                j_position = coordinates[j_particle]
-                rij2 = self.Geom.minimum_image_distance(i_position, j_position)
-                if rij2 < self.cutoff2:
-                    e_pair = self.lennard_jones_potential(rij2)
-                    e_total += e_pair
+        r_i = coordinates[i_particle]
+        rij2 = self.Geom.minimum_image_distance(r_i, coordinates)
+        red = np.delete(rij2, i_particle)
+        pot = self.lennard_jones_potential(red[red < self.cutoff2])
+        e_total = pot.sum()
         return e_total
     
     def calculate_tail_correction(self):
