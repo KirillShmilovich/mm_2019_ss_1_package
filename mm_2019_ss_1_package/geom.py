@@ -59,4 +59,16 @@ class Geom:
         return rij2
 
     def wrap(self,v):
-        return v - self.box_length*np.round(v/self.box_length)
+        """Wrap a vector (or set of vectors) as np array into periodic box
+
+        Parameters
+        ----------
+        v : the vector (or set of vectors) as np array to be wrapped
+
+        Returns
+        -------
+        v_wrapped: the wrapped vector (or set of vectors) as an np array
+
+        """
+        v_wrapped = v - self.box_length*np.round(v/self.box_length)
+        return v_wrapped
