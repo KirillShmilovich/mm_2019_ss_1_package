@@ -31,7 +31,7 @@ class Geom:
         """
 
         if method is 'random':
-            if ('num_particles' not in kwargs || 'box_length' not in kwargs):
+            if ('num_particles' not in kwargs or 'box_length' not in kwargs):
                 raise ValueError(' "num_particles" and "box_length" arguments must be set for method=random!')
             self.num_particles = kwargs['num_particles']
             self.box_length = kwargs['box_length']
@@ -89,4 +89,5 @@ class Geom:
 
         """
         v_wrapped = self.coords - self.box_length*np.round(self.coords/self.box_length)
+
 
