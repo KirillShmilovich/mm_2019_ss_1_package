@@ -87,23 +87,23 @@ class MC:
 
         self.energy_plot = energy_plot
         self.pressure_plot = pressure_plot
-        x_axis = np.array(np.linspace(self.freq, self.n_steps, num= self.n_steps/self.freq + 1))
+        x_axis = np.array(np.arange(0, self.n_steps, self.freq))
         y_axis = []
-        print(x_axis.shape)
-        print(self.n_steps)
-        print(range(self.n_steps))
+#        print(self.n_steps)
+#        print(range(self.n_steps))
         if energy_plot:
             plt.figure(figsize=(10,6), dpi=150)
-            plt.title('LJ potential energy in fluid')
+            plt.title('LJ potential energy of fluid')
             plt.xlabel('Step')
             plt.ylabel('Potential Energy')
-            for y in range(self.n_steps):
-                if np.mod(y + 1, self.freq) == 0:
-                   print(self.energy_array[y])
-                   np.append(y_axis, self.energy_array[y])
-                   print(y_axis)
-#            plt.plot(x_axis, y_axis)
-#            plt.savefig('energy.png')
+            y_axis = self.energy_array[::self.freq]
+            print(x_axis) 
+            print(y_axis)
+            print(x_axis.shape)
+            print(y_axis.shape)
+            plt.ylim(-10,10)
+            plt.plot(x_axis, y_axis)
+            plt.savefig('energy.png')
 
 
 if __name__ == "__main__":
