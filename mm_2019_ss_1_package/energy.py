@@ -58,6 +58,21 @@ class Energy:
         return e_total
 
     def calculate_total_pair_energy(self):
+        """
+        Calculate total pair energy between particles i and j, iterated through all particle pairs in the system.
+
+        Parameters
+        ---------
+        coordinates : array
+            X, Y, Z coordinates of each particle in the system.
+        cutoff2 : integer or float
+            Square of the cutoff distance.
+
+        Returns
+        -------
+        e_total : float
+            Sum of all the pair energies between particles in the system that are within the cutoff distance.
+        """
         e_total = 0.0
         particle_count = len(self.Geom.coordinates)
         for i_particle in range(particle_count):
