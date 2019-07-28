@@ -33,7 +33,7 @@ class Geom:
             self.coordinates = (0.5 - np.random.rand(self.num_particles, 3)) * self.box_length
 
         elif method is 'file':
-            if (kwargs['file_name']==None):
+            if (kwargs['file_name'] == None):
                 raise ValueError('"filename" argument must be set for method = file!')
             file_name = kwargs['file_name']
             with open(file_name) as f:
@@ -70,7 +70,21 @@ class Geom:
         rij2 = np.sum(rij**2,axis=-1)
         return rij2
 
-    def wrap(self):
+    def wrap(self,v):
+        """ Wrap a vector back to periodic box
+
+        Parameters
+        ----------
+        v : the vector to be wrapped
+
+        Returns
+        -------
+        wrapped_v : the vector wrapped back to simulation box
+        """
+        wrapped_v = v - self.box_length*np.round(v/self.box_length)
+        return wrapped_v
+
+    def wrap_all(self):
         """Wrap all coordiantes back to periodic box
 
         Parameters
@@ -83,5 +97,42 @@ class Geom:
 
         """
         self.coordinates = self.coordinates - self.box_length*np.round(self.coordinates/self.box_length)
+
+    def get_particle_coordinates(self):
+        """Get the coordinates of all particles in the system
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        return self.coordinates
+
+    def save_state(self, file_name):
+        """Save current simulation state into a txt file. First line is box dimension, second line is number of particles, and the rest are particle coordinates
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+        """
+        import os.path
+        if (os.path.exists(file_name)):
+            raise ValueError("File already exists!")
+        f = open(file_name,"w+")
+        f.write("%.18e   %.18e   %.18e\n" %(self.box_length,self.box_length,self.box_length))
+        f.write("%d\n"%(self.num_particles))
+        f.close()
+        f = open(file_name,'ab')
+        np.savetxt(f,self.coordinates)
+        f.close()
+
+
 
 
