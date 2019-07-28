@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from .geom import Geom
 from .energy import Energy
@@ -9,7 +10,8 @@ class MC:
         self._n_accept = 0
         self.max_displacement = max_displacement
         self.tune_displacement = tune_displacement
-        self._energy_array = None
+        self._energy_array = np.array([])
+        self.current_step = 0
 
         if method == 'random':
             self._Geom = Geom(method, num_particles = num_particles, reduced_den = reduced_den)
@@ -17,6 +19,9 @@ class MC:
             self._Geom = Geom(method, file_name = file_name)
         else:
             raise ValueError("Method must be either 'file' or 'random'")
+        
+        if reduced_den < 0.0 or reduced_temp < 0.0:
+            raise ValueError("reduced temperature and density must be greater than zero.")
 
         self._Energy = Energy(self._Geom, cutoff)
 
@@ -52,23 +57,31 @@ class MC:
     def save_snapshot(self,file_name):
         self._Geom.save_state(file_name)
 
-    def run(self, n_steps, freq, save_dir='.'):
-        import os.path
+    def run(self, n_steps, freq, save_dir = './snapshots', save_snaps = False):
         if (not os.path.exists(save_dir)):
-            raise ValueError("Snapshot saving directory does not exist!")
-        self._energy_array = np.zeros(n_steps+1)
+            os.mkdir(save_dir)
+
 
         tail_correction = self._Energy.calculate_tail_correction()
         total_pair_energy = self._Energy.calculate_total_pair_energy()
-        self._energy_array[0] = total_pair_energy
+        if self.current_step == 0:
+            self._energy_array = np.append(self._energy_array,np.zeros(n_steps+1))
+            self._energy_array[0] = total_pair_energy
+        else:
+            self._energy_array = np.append(self._energy_array,np.zeros(n_steps))
+
         for i_step in range(1,n_steps+1):
+            self.current_step += 1
             self._n_trials += 1
+
             i_particle = np.random.randint(self._Geom.num_particles)
             random_displacement = (2.0 * np.random.rand(3) - 1.0) * self.max_displacement
+
             current_energy = self._Energy.get_particle_energy(i_particle, self._Geom.coordinates)
             old_coordinate = self._Geom.coordinates[i_particle,:].copy()
             proposed_coordinate = self._Geom.wrap(old_coordinate + random_displacement)
             self._Geom.coordinates[i_particle,:] = proposed_coordinate
+
             proposed_energy = self._Energy.get_particle_energy(i_particle, self._Geom.coordinates)
             delta_e = proposed_energy - current_energy
             accept = self._accept_or_reject(delta_e)
@@ -80,11 +93,12 @@ class MC:
                 self._Geom.coordinates[i_particle,:] = old_coordinate
 
             total_energy = (total_pair_energy + tail_correction) / self._Geom.num_particles
-            self._energy_array[i_step] = total_energy
+            self._energy_array[self.current_step] = total_energy
 
             if np.mod(i_step + 1, freq) == 0:
-                print(i_step + 1, self._energy_array[i_step])
-                self.save_snapshot('%s/snap_%d.txt'%(save_dir,i_step+1))
+                print(i_step + 1, self._energy_array[self.current_step])
+                if save_snaps:
+                    self.save_snapshot('%s/snap_%d.txt'%(save_dir,i_step+1))
                 if self.tune_displacement:
                     self._adjust_displacement()
 
