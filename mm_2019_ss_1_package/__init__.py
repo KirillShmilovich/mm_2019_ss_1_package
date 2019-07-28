@@ -4,7 +4,7 @@ MolSSI Sumemr School Final Project.
 """
 
 # Add imports here
-from .mc import *
+from .mc import MC
 
 # Handle versioneer
 from ._version import get_versions

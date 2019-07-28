@@ -2,6 +2,7 @@ import os
 import numpy as np
 from .geom import Geom
 from .energy import Energy
+
 class MC:
 
     def __init__(self, method, reduced_temp, max_displacement, cutoff, num_particles = None, file_name = None, tune_displacement = True, reduced_den = None):
@@ -58,9 +59,8 @@ class MC:
         self._Geom.save_state(file_name)
 
     def run(self, n_steps, freq, save_dir = './snapshots', save_snaps = False):
-        if (not os.path.exists(save_dir)):
+        if (not os.path.exists(save_dir) and save_snaps==True):
             os.mkdir(save_dir)
-
 
         tail_correction = self._Energy.calculate_tail_correction()
         total_pair_energy = self._Energy.calculate_total_pair_energy()
