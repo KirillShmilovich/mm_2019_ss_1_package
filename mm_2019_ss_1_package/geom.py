@@ -58,12 +58,7 @@ class Geom:
 
         Returns
         -------
-<<<<<<< HEAD
-        rij2 : integer or float
-            square of the distance between particles i and j.
-=======
         rij2 : square of the distance between particles i and j, or particle i and all the coords.
->>>>>>> f3b65902d734466b97c8e26f3edc2b26f662915a
 
         """
         rij = r_i - coords
@@ -119,7 +114,3 @@ class Geom:
         f = open(file_name,'ab')
         np.savetxt(f,self.coordinates)
         f.close()
-
-
-
-

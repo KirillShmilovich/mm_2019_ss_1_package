@@ -27,7 +27,6 @@ class Energy:
         return LJ
 
     def get_particle_energy(self, i_particle, coordinates):
-        #i'm not really sure what type of output this function has so return type may be wrong
         """
         Calculate total energy for a particle, i. Iterate through all particles
 
