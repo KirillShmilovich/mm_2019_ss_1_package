@@ -1,7 +1,7 @@
 import os
 import numpy as np
-from geom import Geom
-from energy import Energy
+from .geom import Geom
+from .energy import Energy
 import matplotlib.pyplot as plt
 
 class MC:
@@ -65,7 +65,7 @@ class MC:
             os.mkdir(save_dir)
         
         log = open("./results/results.log","w+")
-        log.write('Step        Energy')
+        log.write('Step        Energy\n')
 
         tail_correction = self._Energy.calculate_tail_correction()
         total_pair_energy = self._Energy.calculate_total_pair_energy()
@@ -129,12 +129,11 @@ class MC:
         y_axis = []
         if energy_plot:
             plt.figure(figsize=(10,6), dpi=150)
-            plt.title('LJ potential energy of fluid')
+            plt.title('LJ potential energy')
             plt.xlabel('Step')
-            plt.ylabel('Potential Energy')
+            plt.ylabel('Potential Energy (reduced units)')
             y_axis = self._energy_array[self.freq::self.freq]
-            print(x_axis.shape, y_axis.shape)
-            plt.ylim(-10,10)
+            plt.ylim(self._energy_array[-1]-20, self._energy_array[-1]+20)
             plt.plot(x_axis, y_axis)
             plt.savefig('./results/energy.png')
 
