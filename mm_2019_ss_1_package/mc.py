@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from geom import Geom
 from energy import Energy
@@ -7,27 +8,24 @@ class MC:
 
     def __init__(self, method, reduced_temp, max_displacement, cutoff, num_particles = None, file_name = None, tune_displacement = True, reduced_den = None):
         self.beta = 1./float(reduced_temp)
-        self.n_trials = 0
-        self.n_accept = 0
+        self._n_trials = 0
+        self._n_accept = 0
         self.max_displacement = max_displacement
-        self.cutoff = cutoff
         self.tune_displacement = tune_displacement
+        self._energy_array = np.array([])
+        self.current_step = 0
 
         if method == 'random':
-            self.Geom = Geom(method, num_particles = num_particles, reduced_den = reduced_den)
-            self.num_particles = num_particles
-            self.box_length = np.cbrt(num_particles / reduced_den)
+            self._Geom = Geom(method, num_particles = num_particles, reduced_den = reduced_den)
         elif method == 'file':
-            self.Geom = Geom(method, file_name = file_name)
-            self.num_particles = self.Geom.num_particles
-            self.box_length = self.Geom.box_length
+            self._Geom = Geom(method, file_name = file_name)
         else:
             raise ValueError("Method must be either 'file' or 'random'")
-
-        self.Energy = Energy(self.Geom, self.cutoff, self.num_particles)
         
-        self.tail_correction = self.Energy.calculate_tail_correction()
-        self.total_pair_energy = self.Energy.calculate_total_pair_energy()
+        if reduced_den < 0.0 or reduced_temp < 0.0:
+            raise ValueError("reduced temperature and density must be greater than zero.")
+
+        self._Energy = Energy(self._Geom, cutoff)
 
     def _accept_or_reject(self,delta_e):
         if delta_e < 0.0:
@@ -42,71 +40,102 @@ class MC:
         return accept
 
     def _adjust_displacement(self):
-        acc_rate = float(self.n_accept) / float(self.n_trials)
+        acc_rate = float(self._n_accept) / float(self._n_trials)
         if (acc_rate < 0.38):
             self.max_displacement *= 0.8
         elif (acc_rate > 0.42):
             self.max_displacement *= 1.2
-        self.n_trials = 0
-        self.n_accept = 0
-    
-    def run(self, n_steps, freq):
-        self.n_steps = n_steps
-        self.freq = freq
-        self.energy_array = np.zeros(n_steps)
+        self._n_trials = 0
+        self._n_accept = 0
 
-        for i_step in range(self.n_steps):
-            self.n_trials += 1
-            i_particle = np.random.randint(self.Geom.num_particles)
+    def get_energy(self):
+        if (self._energy_array is None):
+            raise ValueError("Simulation has not started running!")
+        return self._energy_array
+
+    def get_snapshot(self):
+        return self._Geom
+
+    def save_snapshot(self,file_name):
+        self._Geom.save_state(file_name)
+
+    def run(self, n_steps, freq, save_dir = './results', save_snaps = False):
+        self.freq = freq
+        if (not os.path.exists(save_dir) and save_snaps==True):
+            os.mkdir(save_dir)
+
+        tail_correction = self._Energy.calculate_tail_correction()
+        total_pair_energy = self._Energy.calculate_total_pair_energy()
+        if self.current_step == 0:
+            self._energy_array = np.append(self._energy_array,np.zeros(n_steps+1))
+            self._energy_array[0] = total_pair_energy
+        else:
+            self._energy_array = np.append(self._energy_array,np.zeros(n_steps))
+
+        for i_step in range(1,n_steps+1):
+            self.current_step += 1
+            self._n_trials += 1
+
+            i_particle = np.random.randint(self._Geom.num_particles)
             random_displacement = (2.0 * np.random.rand(3) - 1.0) * self.max_displacement
 
-            current_energy = self.Energy.get_particle_energy(i_particle, self.Geom.coordinates)
-            proposed_coordinates = self.Geom.coordinates.copy()
-            proposed_coordinates[i_particle] += random_displacement
-            proposed_coordinates -= self.box_length * np.round(proposed_coordinates / self.box_length)
+            current_energy = self._Energy.get_particle_energy(i_particle, self._Geom.coordinates)
+            old_coordinate = self._Geom.coordinates[i_particle,:].copy()
+            proposed_coordinate = self._Geom.wrap(old_coordinate + random_displacement)
+            self._Geom.coordinates[i_particle,:] = proposed_coordinate
 
-            proposed_energy = self.Energy.get_particle_energy(i_particle, proposed_coordinates)
+            proposed_energy = self._Energy.get_particle_energy(i_particle, self._Geom.coordinates)
             delta_e = proposed_energy - current_energy
             accept = self._accept_or_reject(delta_e)
 
             if accept:
-                self.total_pair_energy += delta_e
-                self.n_accept += 1
-                self.Geom.coordinates[i_particle] += random_displacement
+                total_pair_energy += delta_e
+                self._n_accept += 1
+            else:
+                self._Geom.coordinates[i_particle,:] = old_coordinate
 
-            total_energy = (self.total_pair_energy + self.tail_correction) / self.num_particles
-            self.energy_array[i_step] = total_energy
+            total_energy = (total_pair_energy + tail_correction) / self._Geom.num_particles
+            self._energy_array[self.current_step] = total_energy
 
-            if np.mod(i_step + 1, self.freq) == 0:
-                print(i_step + 1, self.energy_array[i_step])
+            if np.mod(i_step + 1, freq) == 0:
+                print(i_step + 1, self._energy_array[self.current_step])
+                if save_snaps:
+                    self.save_snapshot('%s/snap_%d.txt'%(save_dir,i_step+1))
                 if self.tune_displacement:
                     self._adjust_displacement()
-                self.Geom.wrap()
 
-    def plot(self, energy_plot, pressure_plot):
+    def plot(self, energy_plot):
+        ''' Create an energy plot
 
+        Parameters
+        ----------
+        energy_plot = Boolean
+            If true plot is created
+
+        Returns
+        -------
+        None
+        '''
         self.energy_plot = energy_plot
-        self.pressure_plot = pressure_plot
-        x_axis = np.array(np.arange(0, self.n_steps, self.freq))
+        x_axis = np.array(np.arange(0, self.current_step, self.freq))
         y_axis = []
-#        print(self.n_steps)
-#        print(range(self.n_steps))
         if energy_plot:
             plt.figure(figsize=(10,6), dpi=150)
             plt.title('LJ potential energy of fluid')
             plt.xlabel('Step')
             plt.ylabel('Potential Energy')
-            y_axis = self.energy_array[::self.freq]
-            print(x_axis) 
-            print(y_axis)
-            print(x_axis.shape)
-            print(y_axis.shape)
+            y_axis = self._energy_array[self.freq::self.freq]
+            print(x_axis.shape, y_axis.shape)
             plt.ylim(-10,10)
             plt.plot(x_axis, y_axis)
-            plt.savefig('energy.png')
+            plt.savefig('./results/energy.png')
 
 
 if __name__ == "__main__":
+    import time
+    start = time.time()
     sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
-    sim.run(n_steps = 50000, freq= 1000)
-    sim.plot(energy_plot = True, pressure_plot = True)
+    sim.run(n_steps = 5000, freq = 100, save_snaps= True)
+    sim.plot(energy_plot = True)
+    end = time.time()
+    print ("Sim takes %10.5f seconds"%(end-start))
