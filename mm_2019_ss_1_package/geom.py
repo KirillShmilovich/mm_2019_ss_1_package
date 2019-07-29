@@ -18,10 +18,6 @@ class Geom:
         box_length : integer or float
             Length of box to generate.
 
-        Returns
-        -------
-        coordinates : array
-            Array of particle coordinates generated for an initial state
         """
 
         if method is 'random':
@@ -118,7 +114,3 @@ class Geom:
         f = open(file_name,'ab')
         np.savetxt(f,self.coordinates)
         f.close()
-
-
-
-
