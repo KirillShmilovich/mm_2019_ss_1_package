@@ -69,7 +69,7 @@ def test_energy():
 
 def test_individual_lj_potential():
     """
-    Check if the basic calculation of LJ potential is working
+    Check if the basic calculation of LJ potential is working.
     """
     
     rij2 = 2.0
@@ -84,13 +84,13 @@ def test_individual_lj_potential():
 
 def test_get_particle_energy():
     """
-    Check if the particle energy calculation work for a simple setup
+    Check if the particle energy calculation works for a simple setup.
     """
 
     trial_coordinates = np.array( [ [4,5,5] , [6,5,5] , [5,5,5] , [5,4,5] , [5,6,5] ] )
     ith_particle = 2
-    G = mm.Geom(method = 'random', num_particles = 100, reduced_den = 100/(10**3))
-    E = mm.Energy(G,3.0)
+    G = mm.Geom(method = 'random', num_particles = 1000, reduced_den = 1)
+    E = mm.Energy(G, cutoff = 3.0)
     calculated_result = E.get_particle_energy( i_particle = ith_particle , coordinates = trial_coordinates )
     expected_result = 0
 
@@ -99,7 +99,7 @@ def test_get_particle_energy():
 
 def test_wrap():
     """
-    Check if the warp method work for periodic box
+    Check if the warp method works for periodic box.
     """
 
     vec_to_wrap = np.array([11 , 12 , 13])
@@ -110,3 +110,19 @@ def test_wrap():
     expected_result = np.array([1 , 2 , 3])
 
     assert np.allclose( calculated_result , expected_result )
+
+
+def test_tail_correction():
+    """
+    Check if the tail correction works.
+    """
+
+    G = mm.Geom(method = 'random', num_particles = 1000, reduced_den = 1)
+    E = mm.Energy(G, cutoff = 1.0)
+
+    calculated_result = E.calculate_tail_correction()
+    expected_result = (-2.0) * 8.0/9.0 * np.pi * 1000 / 1000 * 1000
+
+    assert np.isclose( calculated_result , expected_result )
+
+
