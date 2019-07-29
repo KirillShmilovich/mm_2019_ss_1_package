@@ -79,6 +79,23 @@ class Energy:
         return e_total/2
 
     def calculate_tail_correction(self):
+        """
+        Calculate tail correction for Lennard-Jones potential.
+
+        Parameters
+        ----------
+        num_particles : integer
+            Number of particles in system.
+        cutoff : integer or float
+            Cutoff distance for the potential.
+        volume : integer or float
+            Volume of box in simulation.
+
+        Returns
+        -------
+        e_correction : float
+            Tail correction for num_particles in box of a given volume.
+        """
         num_particles = self.Geom.num_particles
         sig_by_cutoff3 = np.power(1.0 / self.cutoff, 3)
         sig_by_cutoff9 = np.power(sig_by_cutoff3, 3)
