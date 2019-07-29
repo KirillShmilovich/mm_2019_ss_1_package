@@ -24,7 +24,7 @@ def test_mm_2019_ss_1_package_imported():
     assert "mm_2019_ss_1_package" in sys.modules
 
 
-def test_minimum_image_distance(trial_sim):
+def test_minimum_image_distance():
     """Test the method to calculate minimum image distance. Arguments for MC.py are set to be easy ones so that expected value is 2"""
 
     G = mm.geom.Geom(method = 'random', num_particles = 1000, reduced_den = 1.0)
@@ -67,7 +67,7 @@ def test_energy():
 		calculation[i] = E_total
 	assert np.allclose(np.around(reference,decimals=1),np.around(calculation,decimals=1))
 
-def test_individual_lj_potential(trial_sim):
+def test_individual_lj_potential():
     """
     Check if the basic calculation of LJ potential is working
     """
@@ -95,3 +95,18 @@ def test_get_particle_energy():
     expected_result = 0
 
     assert np.isclose( calculated_result , expected_result )
+
+
+def test_wrap():
+    """
+    Check if the warp method work for periodic box
+    """
+
+    vec_to_wrap = np.array([11 , 12 , 13])
+
+    G = mm.Geom(method = 'random', num_particles = 1000 , reduced_den = 1)
+
+    calculated_result = G.wrap( v = vec_to_wrap)
+    expected_result = np.array([1 , 2 , 3])
+
+    assert np.allclose( calculated_result , expected_result )
