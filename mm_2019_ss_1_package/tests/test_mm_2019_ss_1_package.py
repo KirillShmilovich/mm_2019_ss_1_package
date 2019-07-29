@@ -9,6 +9,7 @@ import pytest
 import sys
 import numpy as np
 import glob
+import shutil
 
 @pytest.fixture()
 def trial_sim():
@@ -125,4 +126,8 @@ def test_tail_correction():
 
     assert np.isclose( calculated_result , expected_result )
 
-
+def test_run():
+    sim = mm.MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
+    sim.run(n_steps = 5000, freq = 100, save_snaps= True)
+    sim.plot(energy_plot = True)
+    shutil.rmtree("./results", ignore_errors = True)    
