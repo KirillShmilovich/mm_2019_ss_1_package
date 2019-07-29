@@ -61,8 +61,11 @@ class MC:
 
     def run(self, n_steps, freq, save_dir = './results', save_snaps = False):
         self.freq = freq
-        if (not os.path.exists(save_dir) and save_snaps==True):
+        if (not os.path.exists(save_dir)):
             os.mkdir(save_dir)
+        
+        log = open("./results/results.log","w+")
+        log.write('Step        Energy')
 
         tail_correction = self._Energy.calculate_tail_correction()
         total_pair_energy = self._Energy.calculate_total_pair_energy()
@@ -97,12 +100,17 @@ class MC:
             total_energy = (total_pair_energy + tail_correction) / self._Geom.num_particles
             self._energy_array[self.current_step] = total_energy
 
+
             if np.mod(i_step + 1, freq) == 0:
+                log.write(str(i_step + 1)+'         '+str(self._energy_array[self.current_step]))
+                log.write('\n')
                 print(i_step + 1, self._energy_array[self.current_step])
                 if save_snaps:
                     self.save_snapshot('%s/snap_%d.txt'%(save_dir,i_step+1))
                 if self.tune_displacement:
                     self._adjust_displacement()
+        log.close()
+        
 
     def plot(self, energy_plot):
         ''' Create an energy plot
