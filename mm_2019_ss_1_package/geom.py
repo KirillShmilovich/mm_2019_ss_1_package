@@ -85,20 +85,6 @@ class Geom:
         wrapped_v = v - self.box_length*np.round(v/self.box_length)
         return wrapped_v
 
-    def wrap_all(self):
-        """Wrap all coordiantes back to periodic box
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
-        """
-        self.coordinates = self.coordinates - self.box_length*np.round(self.coordinates/self.box_length)
-
     def get_particle_coordinates(self):
         """Get the coordinates of all particles in the system
 
