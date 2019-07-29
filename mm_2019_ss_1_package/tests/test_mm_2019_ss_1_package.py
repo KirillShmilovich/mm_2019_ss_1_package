@@ -40,7 +40,7 @@ def test_energy():
 	"""
 	Check the total pair energy calculation matches reference LJ calculation in NIST
 	"""
-	samples = glob.glob('tests/lj_sample_configurations/*.txt')
+	samples = glob.glob('mm_2019_ss_1_package/tests/lj_sample_configurations/*.txt')
 	samples.sort()
 
 	# Test r_cut = 3.0
