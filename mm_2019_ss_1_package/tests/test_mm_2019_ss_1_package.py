@@ -4,7 +4,7 @@ Unit and regression test for the mm_2019_ss_1_package package.
 
 # Import package, test suite, and other packages as needed
 import mm_2019_ss_1_package as mm
-from mm_2019_ss_1_package import Energy, Geom 
+#from mm_2019_ss_1_package import Energy, Geom 
 import pytest
 import sys
 import numpy as np
@@ -50,7 +50,7 @@ def test_energy():
 	for i in range(len(samples)):
 		sample = samples[i]
 		geom = mm.geom.Geom(method='file',file_name=sample)
-		energy = mm.energy.Energy(geom,r_cut)
+		energy = mm.Energy(geom,r_cut)
 		E_total = energy.calculate_total_pair_energy()
 		calculation[i] = E_total
 	assert np.allclose(np.around(reference,decimals=1),np.around(calculation,decimals=1))
@@ -67,4 +67,31 @@ def test_energy():
 		calculation[i] = E_total
 	assert np.allclose(np.around(reference,decimals=1),np.around(calculation,decimals=1))
 
+def test_individual_lj_potential(trial_sim):
+    """
+    Check if the basic calculation of LJ potential is working
+    """
     
+    rij2 = 2.0
+    
+    test_E = mm.Energy(None,3.0)
+    calculated_result = test_E.lennard_jones_potential(rij2)
+    expected_result = 4.0 * ( 1./64 - 1./8 )
+
+    assert np.isclose( calculated_result , expected_result)
+
+
+
+def test_get_particle_energy():
+    """
+    Check if the particle energy calculation work for a simple setup
+    """
+
+    trial_coordinates = np.array( [ [4,5,5] , [6,5,5] , [5,5,5] , [5,4,5] , [5,6,5] ] )
+    ith_particle = 2
+    G = mm.Geom(method = 'random', num_particles = 100, reduced_den = 100/(10**3))
+    E = mm.Energy(G,3.0)
+    calculated_result = E.get_particle_energy( i_particle = ith_particle , coordinates = trial_coordinates )
+    expected_result = 0
+
+    assert np.isclose( calculated_result , expected_result )
