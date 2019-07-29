@@ -1,7 +1,8 @@
 import os
 import numpy as np
-from .geom import Geom
-from .energy import Energy
+from geom import Geom
+from energy import Energy
+import matplotlib.pyplot as plt
 
 class MC:
 
@@ -58,9 +59,13 @@ class MC:
     def save_snapshot(self,file_name):
         self._Geom.save_state(file_name)
 
-    def run(self, n_steps, freq, save_dir = './snapshots', save_snaps = False):
-        if (not os.path.exists(save_dir) and save_snaps==True):
+    def run(self, n_steps, freq, save_dir = './results', save_snaps = False):
+        self.freq = freq
+        if (not os.path.exists(save_dir)):
             os.mkdir(save_dir)
+        
+        log = open("./results/results.log","w+")
+        log.write('Step        Energy')
 
         tail_correction = self._Energy.calculate_tail_correction()
         total_pair_energy = self._Energy.calculate_total_pair_energy()
@@ -95,17 +100,50 @@ class MC:
             total_energy = (total_pair_energy + tail_correction) / self._Geom.num_particles
             self._energy_array[self.current_step] = total_energy
 
+
             if np.mod(i_step + 1, freq) == 0:
+                log.write(str(i_step + 1)+'         '+str(self._energy_array[self.current_step]))
+                log.write('\n')
                 print(i_step + 1, self._energy_array[self.current_step])
                 if save_snaps:
                     self.save_snapshot('%s/snap_%d.txt'%(save_dir,i_step+1))
                 if self.tune_displacement:
                     self._adjust_displacement()
+        log.close()
+        
+
+    def plot(self, energy_plot):
+        ''' Create an energy plot
+
+        Parameters
+        ----------
+        energy_plot = Boolean
+            If true plot is created
+
+        Returns
+        -------
+        None
+        '''
+        self.energy_plot = energy_plot
+        x_axis = np.array(np.arange(0, self.current_step, self.freq))
+        y_axis = []
+        if energy_plot:
+            plt.figure(figsize=(10,6), dpi=150)
+            plt.title('LJ potential energy of fluid')
+            plt.xlabel('Step')
+            plt.ylabel('Potential Energy')
+            y_axis = self._energy_array[self.freq::self.freq]
+            print(x_axis.shape, y_axis.shape)
+            plt.ylim(-10,10)
+            plt.plot(x_axis, y_axis)
+            plt.savefig('./results/energy.png')
+
 
 if __name__ == "__main__":
     import time
     start = time.time()
-    sim = MC(method = 'random', num_particles = 1000, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
-    sim.run(n_steps = 500000, freq = 10000)
+    sim = MC(method = 'random', num_particles = 100, reduced_den = 0.9, reduced_temp = 0.9, max_displacement = 0.1, cutoff = 3.0)
+    sim.run(n_steps = 5000, freq = 100, save_snaps= True)
+    sim.plot(energy_plot = True)
     end = time.time()
     print ("Sim takes %10.5f seconds"%(end-start))
